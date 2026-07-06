@@ -1,31 +1,58 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
+  // 🚨 erros
+  const [emailError, setEmailError] = useState("");
+  const [senhaError, setSenhaError] = useState("");
+
   function fazerLogin() {
-    if (!email || !senha) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
-      return;
-    }
+    let erro = false;
 
+    setEmailError("");
+    setSenhaError("");
+
+    // valida email
     if (!email.includes("@")) {
-      Alert.alert("Erro", "Digite um e-mail válido.");
-      return;
+      setEmailError("E-mail inválido");
+      erro = true;
     }
 
-    Alert.alert("Sucesso", "Login realizado!");
+    // valida senha
+    if (senha.length < 4) {
+      setSenhaError("Senha deve ter pelo menos 4 caracteres");
+      erro = true;
+    }
+
+    if (erro) return;
+
+    // login simulado
+    if (email.includes("medico")) {
+      router.push("/medico");
+    } else {
+      router.push("/cliente");
+    }
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
+
+      {/* ÍCONE */}
       <Ionicons name="medical" size={70} color="#007AFF" />
 
       <Text style={styles.titulo}>ClínicaJá</Text>
@@ -33,37 +60,40 @@ export default function LoginScreen() {
         Bem-vindo! Faça login para continuar.
       </Text>
 
+      {/* EMAIL */}
       <View style={styles.inputContainer}>
-        <Ionicons
-          name="mail-outline"
-          size={22}
-          color="#777"
-          style={styles.icon}
-        />
+        <Ionicons name="mail-outline" size={22} color="#777" style={styles.icon} />
+
         <TextInput
           style={styles.input}
           placeholder="E-mail"
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setEmailError("");
+          }}
         />
       </View>
 
+      {emailError ? (
+        <Text style={styles.errorText}>{emailError}</Text>
+      ) : null}
+
+      {/* SENHA */}
       <View style={styles.inputContainer}>
-        <Ionicons
-          name="lock-closed-outline"
-          size={22}
-          color="#777"
-          style={styles.icon}
-        />
+        <Ionicons name="lock-closed-outline" size={22} color="#777" style={styles.icon} />
 
         <TextInput
           style={styles.input}
           placeholder="Senha"
           secureTextEntry={!mostrarSenha}
           value={senha}
-          onChangeText={setSenha}
+          onChangeText={(text) => {
+            setSenha(text);
+            setSenhaError("");
+          }}
         />
 
         <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)}>
@@ -75,23 +105,29 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
+      {senhaError ? (
+        <Text style={styles.errorText}>{senhaError}</Text>
+      ) : null}
+
+      {/* BOTÃO */}
       <TouchableOpacity style={styles.botao} onPress={fazerLogin}>
         <Text style={styles.textoBotao}>Entrar</Text>
       </TouchableOpacity>
 
+      {/* LINKS */}
       <TouchableOpacity>
         <Text style={styles.link}>Esqueci minha senha?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity>
-        <Text style={styles.link}>
-          Não possui conta? Cadastre-se
-        </Text>
+        <Text style={styles.link}>Não possui conta? Cadastre-se</Text>
       </TouchableOpacity>
+
     </ScrollView>
   );
 }
 
+/* 🎨 STYLE */
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -125,7 +161,7 @@ const styles = StyleSheet.create({
     borderColor: "#DDD",
     borderRadius: 12,
     paddingHorizontal: 12,
-    marginBottom: 18,
+    marginBottom: 10,
   },
 
   icon: {
@@ -159,5 +195,12 @@ const styles = StyleSheet.create({
     marginTop: 18,
     textAlign: "center",
   },
-}
-);
+
+  errorText: {
+    color: "red",
+    fontSize: 13,
+    marginBottom: 10,
+    alignSelf: "flex-start",
+    marginLeft: "12%",
+  },
+});
