@@ -1,0 +1,37 @@
+import { Paciente } from '../types/paciente';
+
+export const mockPacientes: Paciente[] = [
+  {
+    id: '1',
+    nome: 'Carlos Silva',
+    cpf: '123.456.789-00',
+    dataNascimento: '15/08/1985',
+    email: 'carlos.silva@email.com',
+    telefone: '(11) 98765-4321',
+    sexo: 'Masculino',
+    cep: '01001-000',
+    endereco: 'Praça da Sé',
+    numero: '100',
+    complemento: 'Apto 42',
+    bairro: 'Sé',
+    cidade: 'São Paulo',
+    estado: 'SP',
+    dataCadastro: '2026-01-10T14:30:00.000Z',
+  },
+  {
+    id: '2',
+    nome: 'Ana Souza',
+    cpf: '987.654.321-99',
+    dataNascimento: '22/03/1990',
+    email: 'ana.souza@email.com',
+    telefone: '(21) 99888-7766',
+    sexo: 'Feminino',
+    cep: '20040-002',
+    endereco: 'Avenida Rio Branco',
+    numero: '156',
+    bairro: 'Centro',
+    cidade: 'Rio de Janeiro',
+    estado: 'RJ',
+    dataCadastro: '2026-02-15T09:15:00.000Z',
+  },
+];
