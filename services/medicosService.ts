@@ -42,6 +42,12 @@ export const medicosService = {
     };
 
     medicosState.push(novoMedico);
+
+    // LOG DE HOMOLOGAÇÃO: Imprime a lista de médicos atualizada no terminal
+    console.log('\n=== [DEBUG] MÉDICO CADASTRADO COM SUCESSO ===');
+    console.log(JSON.stringify(medicosState, null, 2));
+    console.log('==============================================\n');
+
     return novoMedico;
   },
 

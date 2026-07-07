@@ -38,6 +38,12 @@ export const pacientesService = {
     };
 
     pacientesState.push(novoPaciente);
+    
+    // LOG DE HOMOLOGAÇÃO: Imprime a lista de pacientes atualizada no terminal
+    console.log('\n=== [DEBUG] PACIENTE CADASTRADO COM SUCESSO ===');
+    console.log(JSON.stringify(pacientesState, null, 2));
+    console.log('================================================\n');
+
     return novoPaciente;
   },
 
