@@ -1,14 +1,13 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
-  ScrollView,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import {
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
+} from "react-native";
 
 const acoes = [
   {
@@ -111,9 +110,7 @@ export default function Cliente() {
             <Text style={[styles.cardTitle, { color: text }]}>Próxima consulta</Text>
           </View>
 
-          <Text style={[styles.appointmentDate, { color: text }]}>
-            18 de julho, 09:30
-          </Text>
+          <Text style={[styles.appointmentDate, { color: text }]}>18 de julho, 09:30</Text>
 
           <View style={styles.doctorRow}>
             <View style={styles.doctorIcon}>
@@ -192,6 +189,17 @@ export default function Cliente() {
         >
           <Ionicons name="add-circle-outline" size={22} color="#fff" />
           <Text style={styles.buttonText}>Agendar consulta</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.86}
+          accessibilityRole="button"
+          accessibilityLabel="Cadastrar paciente"
+          style={[styles.secondaryButton, { backgroundColor: isDark ? "#60A5FA" : "#007AFF" }]}
+          onPress={() => router.push("/cadastro-paciente")}
+        >
+          <Ionicons name="person-add-outline" size={22} color="#fff" />
+          <Text style={styles.buttonText}>Cadastrar Paciente</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -366,6 +374,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 10,
+  },
+
+  secondaryButton: {
+    flexDirection: "row",
+    gap: 8,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
   },
 
   buttonText: {

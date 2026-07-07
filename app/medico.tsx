@@ -24,7 +24,7 @@ const resumo = [
     cor: "#10B981",
   },
   {
-    titulo: "Pend√™ncias",
+    titulo: "PendÍncias",
     valor: "3",
     icon: "alert-circle-outline",
     cor: "#F59E0B",
@@ -41,7 +41,7 @@ const consultas = [
   {
     horario: "10:00",
     paciente: "Carlos Henrique",
-    detalhe: "Avalia√ß√£o inicial",
+    detalhe: "AvaliaÁ„o inicial",
     status: "Aguardando",
   },
   {
@@ -55,7 +55,7 @@ const consultas = [
 const pacientes = [
   {
     nome: "Marina Lopes",
-    detalhe: "√öltima consulta h√° 14 dias",
+    detalhe: "⁄ltima consulta h· 14 dias",
     icon: "heart-outline",
   },
   {
@@ -97,9 +97,9 @@ export default function Medico() {
         <View style={styles.header}>
           <Ionicons name="medical-outline" size={70} color={isDark ? "#60A5FA" : "#007AFF"} />
 
-          <Text style={[styles.title, { color: text }]}>√Årea do M√©dico</Text>
+          <Text style={[styles.title, { color: text }]}>¡rea do MÈdico</Text>
 
-          <Text style={{ color: muted }}>Bem-vindo ao Cl√≠nicaJ√°, Dra. Ana</Text>
+          <Text style={{ color: muted }}>Bem-vindo ao ClÌnicaJ·, Dra. Ana</Text>
         </View>
 
         <View style={styles.statsGrid}>
@@ -122,9 +122,7 @@ export default function Medico() {
             accessibilityRole="button"
             accessibilityLabel="Ver todas as consultas"
           >
-            <Text style={[styles.sectionAction, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
-              Ver todas
-            </Text>
+            <Text style={[styles.sectionAction, { color: isDark ? "#60A5FA" : "#007AFF" }]}>Ver todas</Text>
           </TouchableOpacity>
         </View>
 
@@ -147,8 +145,7 @@ export default function Medico() {
                 style={[
                   styles.statusPill,
                   {
-                    backgroundColor:
-                      consulta.status === "Confirmada" ? "#DCFCE7" : "#FEF3C7",
+                    backgroundColor: consulta.status === "Confirmada" ? "#DCFCE7" : "#FEF3C7",
                   },
                 ]}
               >
@@ -177,9 +174,18 @@ export default function Medico() {
           <Text style={styles.buttonText}>Nova consulta</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.sectionTitle, styles.patientTitle, { color: text }]}>
-          Pacientes recentes
-        </Text>
+        <TouchableOpacity
+          activeOpacity={0.86}
+          accessibilityRole="button"
+          accessibilityLabel="Cadastrar mÈdico"
+          style={[styles.secondaryButton, { backgroundColor: isDark ? "#60A5FA" : "#007AFF" }]}
+          onPress={() => router.push("/cadastro-medico")}
+        >
+          <Ionicons name="people-outline" size={22} color="#fff" />
+          <Text style={styles.buttonText}>Cadastrar MÈdico</Text>
+        </TouchableOpacity>
+
+        <Text style={[styles.sectionTitle, styles.patientTitle, { color: text }]}>Pacientes recentes</Text>
 
         <View style={styles.list}>
           {pacientes.map((paciente) => (
@@ -345,6 +351,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 18,
+  },
+
+  secondaryButton: {
+    flexDirection: "row",
+    gap: 8,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
   },
 
   buttonText: {
