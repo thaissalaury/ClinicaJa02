@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View,
+import {
+  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -10,6 +11,23 @@ import { View,
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
+type Perfil = "medico" | "paciente";
+
+const perfis = [
+  {
+    id: "medico",
+    titulo: "Médico",
+    descricao: "Agenda, pacientes e atendimentos",
+    icon: "medical-outline",
+  },
+  {
+    id: "paciente",
+    titulo: "Paciente",
+    descricao: "Consultas, histórico e agendamentos",
+    icon: "person-outline",
+  },
+] as const;
+
 export default function LoginScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -18,6 +36,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [perfilSelecionado, setPerfilSelecionado] = useState<Perfil>("paciente");
 
   const [emailError, setEmailError] = useState("");
   const [senhaError, setSenhaError] = useState("");
@@ -28,121 +47,226 @@ export default function LoginScreen() {
     setEmailError("");
     setSenhaError("");
 
-    if (!email.includes("@")) {
+    if (!email.trim().includes("@")) {
       setEmailError("E-mail inválido");
       erro = true;
     }
 
-    if (senha.length < 8) {
-      setSenhaError("A senha deve ter pelo menos 8 caractéres.");
+    if (!senha.trim()) {
+      setSenhaError("Digite uma senha para continuar.");
       erro = true;
     }
 
     if (erro) return;
 
-    if (email.includes("medico")) {
-      router.push("/medico");
-    } else {
-      router.push("/cliente");
-    }
+    router.push(perfilSelecionado === "medico" ? "/medico" : "/cliente");
   }
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: isDark ? "#0F172A" : "#F4F8FB" }]}>
-
-      <Ionicons name="medical" size={70} color={isDark ? "#60A5FA" : "#007AFF"} />
-
-      <Text style={[styles.titulo, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
-        ClínicaJá
-      </Text>
-
-      <Text style={[styles.subtitulo, { color: isDark ? "#CBD5E1" : "#666" }]}>
-        Bem-vindo! Faça login para continuar.
-      </Text>
-
-      {/* EMAIL */}
-      <View style={[styles.inputContainer, {
-        backgroundColor: isDark ? "#1E293B" : "#FFF",
-        borderColor: isDark ? "#334155" : "#DDD"
-      }]}>
-        <Ionicons name="mail-outline" size={22} color="#777" style={styles.icon} />
-
-        <TextInput
-          style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-          placeholder="E-mail"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            setEmailError("");
-          }}
-        />
-      </View>
-
-      {emailError ? (
-        <Text style={styles.errorText}>{emailError}</Text>
-      ) : null}
-
-      {/* SENHA */}
-      <View style={[styles.inputContainer, {
-        backgroundColor: isDark ? "#1E293B" : "#FFF",
-        borderColor: isDark ? "#334155" : "#DDD"
-      }]}>
-        <Ionicons name="lock-closed-outline" size={22} color="#777" style={styles.icon} />
-
-        <TextInput
-          style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-          placeholder="Senha"
-          placeholderTextColor="#999"
-          secureTextEntry={!mostrarSenha}
-          value={senha}
-          onChangeText={(text) => {
-            setSenha(text);
-            setSenhaError("");
-          }}
-        />
-
-        <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: isDark ? "#0F172A" : "#F4F8FB" },
+      ]}
+    >
+      <View style={styles.content}>
+        <View style={styles.header}>
           <Ionicons
-            name={mostrarSenha ? "eye-off-outline" : "eye-outline"}
+            name="medical"
+            size={70}
+            color={isDark ? "#60A5FA" : "#007AFF"}
+          />
+
+          <Text style={[styles.titulo, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
+            ClínicaJá
+          </Text>
+
+          <Text style={[styles.subtitulo, { color: isDark ? "#CBD5E1" : "#666" }]}>
+            Bem-vindo! Faça login para continuar.
+          </Text>
+        </View>
+
+        <View style={styles.perfilGroup}>
+          <Text style={[styles.label, { color: isDark ? "#E2E8F0" : "#111" }]}>
+            Entrar como
+          </Text>
+
+          <View style={styles.perfilList}>
+            {perfis.map((perfil) => {
+              const selecionado = perfilSelecionado === perfil.id;
+
+              return (
+                <TouchableOpacity
+                  key={perfil.id}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selecionado }}
+                  accessibilityLabel={`Selecionar perfil ${perfil.titulo}`}
+                  style={[
+                    styles.perfilCard,
+                    {
+                      backgroundColor: selecionado
+                        ? isDark
+                          ? "#0B3B75"
+                          : "#E8F2FF"
+                        : isDark
+                          ? "#1E293B"
+                          : "#FFF",
+                      borderColor: selecionado
+                        ? "#007AFF"
+                        : isDark
+                          ? "#334155"
+                          : "#DDD",
+                    },
+                  ]}
+                  onPress={() => setPerfilSelecionado(perfil.id)}
+                >
+                  <Ionicons
+                    name={perfil.icon}
+                    size={24}
+                    color={selecionado ? "#007AFF" : isDark ? "#CBD5E1" : "#777"}
+                  />
+
+                  <View style={styles.perfilTexto}>
+                    <Text
+                      style={[
+                        styles.perfilTitulo,
+                        { color: isDark ? "#fff" : "#111" },
+                      ]}
+                    >
+                      {perfil.titulo}
+                    </Text>
+                    <Text style={{ color: isDark ? "#CBD5E1" : "#666" }}>
+                      {perfil.descricao}
+                    </Text>
+                  </View>
+
+                  {selecionado ? (
+                    <Ionicons name="checkmark-circle" size={22} color="#007AFF" />
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: isDark ? "#1E293B" : "#FFF",
+              borderColor: isDark ? "#334155" : "#DDD",
+            },
+          ]}
+        >
+          <Ionicons name="mail-outline" size={22} color="#777" style={styles.icon} />
+
+          <TextInput
+            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
+            placeholder="E-mail"
+            placeholderTextColor="#999"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              setEmailError("");
+            }}
+          />
+        </View>
+
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: isDark ? "#1E293B" : "#FFF",
+              borderColor: isDark ? "#334155" : "#DDD",
+            },
+          ]}
+        >
+          <Ionicons
+            name="lock-closed-outline"
             size={22}
             color="#777"
+            style={styles.icon}
           />
+
+          <TextInput
+            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
+            placeholder="Senha"
+            placeholderTextColor="#999"
+            secureTextEntry={!mostrarSenha}
+            value={senha}
+            onChangeText={(text) => {
+              setSenha(text);
+              setSenhaError("");
+            }}
+          />
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+          >
+            <Ionicons
+              name={mostrarSenha ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#777"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {senhaError ? <Text style={styles.errorText}>{senhaError}</Text> : null}
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`Entrar como ${
+            perfilSelecionado === "medico" ? "Médico" : "Paciente"
+          }`}
+          style={styles.botao}
+          onPress={fazerLogin}
+        >
+          <Ionicons name="log-in-outline" size={22} color="#fff" />
+          <Text style={styles.textoBotao}>
+            Entrar como {perfilSelecionado === "medico" ? "Médico" : "Paciente"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button">
+          <Text style={[styles.link, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
+            Esqueci minha senha?
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button">
+          <Text style={[styles.link, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
+            Não possui conta? Cadastre-se
+          </Text>
         </TouchableOpacity>
       </View>
-
-      {senhaError ? (
-        <Text style={styles.errorText}>{senhaError}</Text>
-      ) : null}
-
-      {/* BOTÃO */}
-      <TouchableOpacity style={styles.botao} onPress={fazerLogin}>
-        <Text style={styles.textoBotao}>Entrar</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity>
-        <Text style={[styles.link, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
-          Esqueci minha senha?
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity>
-        <Text style={[styles.link, { color: isDark ? "#60A5FA" : "#007AFF" }]}>
-          Não possui conta? Cadastre-se
-        </Text>
-      </TouchableOpacity>
-
     </ScrollView>
   );
 }
 
-/* 🎨 STYLE BASE */
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 25,
+  },
+
+  content: {
+    width: "100%",
+    maxWidth: 430,
+    alignItems: "center",
+  },
+
+  header: {
+    alignItems: "center",
+    marginBottom: 28,
   },
 
   titulo: {
@@ -155,17 +279,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 5,
-    marginBottom: 35,
+  },
+
+  perfilGroup: {
+    width: "100%",
+    marginBottom: 14,
+  },
+
+  label: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+
+  perfilList: {
+    gap: 10,
+  },
+
+  perfilCard: {
+    width: "100%",
+    minHeight: 74,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    elevation: 2,
+  },
+
+  perfilTexto: {
+    flex: 1,
+  },
+
+  perfilTitulo: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 2,
   },
 
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: "75%",
+    width: "100%",
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 12,
     marginBottom: 10,
+    elevation: 2,
   },
 
   icon: {
@@ -179,17 +340,20 @@ const styles = StyleSheet.create({
   },
 
   botao: {
-    width: "65%",
+    width: "100%",
+    flexDirection: "row",
+    gap: 8,
     backgroundColor: "#007AFF",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 10,
+    justifyContent: "center",
   },
 
   textoBotao: {
     color: "#FFF",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "bold",
   },
 
@@ -204,6 +368,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 10,
     alignSelf: "flex-start",
-    marginLeft: "12%",
   },
 });
