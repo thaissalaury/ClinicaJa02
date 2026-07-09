@@ -1,103 +1,81 @@
 import { Medico } from '../types/medico';
-import { mockMedicos } from '../data/mockMedicos';
-
-// Estado local em memória durante a execução do app para permitir alterações temporárias
-let medicosState: Medico[] = [...mockMedicos];
-
-// Função auxiliar para simular latência de rede (ex: 300ms)
-const delay = (ms: number = 300) => new Promise(resolve => setTimeout(resolve, ms));
+import { apiRequest } from './api';
 
 export const medicosService = {
   /**
-   * Retorna a lista de médicos cadastrados
+   * Cadastra um novo médico.
+   * Fluxo: 1) Registra no Supabase Auth → 2) Cria o perfil na tabela medicos
    */
-  async listar(): Promise<Medico[]> {
-    await delay();
-    return [...medicosState];
-  },
+  async cadastrar(
+    medico: Omit<Medico, 'id' | 'dataCadastro'> & { senha: string }
+  ): Promise<Medico> {
+    // 1. Registrar no Supabase Auth
+    const authResult = await apiRequest('/auth/register', 'POST', {
+      email: medico.email,
+      password: medico.senha,
+    });
 
-  /**
-   * Cadastra um novo médico, validando unicidade de CRM + UF
-   */
-  async cadastrar(medico: Omit<Medico, 'id' | 'dataCadastro'>): Promise<Medico> {
-    await delay();
-
-    const crmLimpo = medico.crm.trim();
-    const ufLimpa = medico.ufCrm.trim().toUpperCase();
-
-    const crmJaExiste = medicosState.some(
-      m => m.crm.trim() === crmLimpo && m.ufCrm.trim().toUpperCase() === ufLimpa
-    );
-
-    if (crmJaExiste) {
-      throw new Error(`Já existe um médico cadastrado com o CRM ${crmLimpo} nesta UF (${ufLimpa}).`);
+    if (!authResult.ok) {
+      throw new Error(authResult.error || 'Erro ao registrar usuário.');
     }
 
-    const novoMedico: Medico = {
-      ...medico,
-      crm: crmLimpo,
-      ufCrm: ufLimpa,
-      id: Math.random().toString(36).substring(2, 9),
-      dataCadastro: new Date().toISOString(),
-    };
+    // 2. Fazer login para obter o token de sessão
+    const loginResult = await apiRequest('/auth/login', 'POST', {
+      email: medico.email,
+      password: medico.senha,
+    });
 
-    medicosState.push(novoMedico);
+    if (!loginResult.ok) {
+      throw new Error(loginResult.error || 'Erro ao autenticar usuário.');
+    }
 
-    // LOG DE HOMOLOGAÇÃO: Imprime a lista de médicos atualizada no terminal
-    console.log('\n=== [DEBUG] MÉDICO CADASTRADO COM SUCESSO ===');
-    console.log(JSON.stringify(medicosState, null, 2));
+    const token = loginResult.data.session.access_token;
+
+    // 3. Criar o perfil do médico com o token
+    const perfilResult = await apiRequest('/medicos', 'POST', {
+      nome: medico.nome,
+      crm: medico.crm,
+      uf_crm: medico.ufCrm,
+      especialidade: medico.especialidade,
+      telefone: medico.telefone,
+      email: medico.email,
+      clinica: medico.clinica,
+    }, token);
+
+    if (!perfilResult.ok) {
+      throw new Error(perfilResult.error || 'Erro ao salvar perfil do médico.');
+    }
+
+    console.log('\n=== [DEBUG] MÉDICO CADASTRADO NO SUPABASE ===');
+    console.log(JSON.stringify(perfilResult.data, null, 2));
     console.log('==============================================\n');
 
-    return novoMedico;
+    return perfilResult.data.medico;
   },
 
   /**
-   * Atualiza dados de um médico existente
+   * Lista todos os médicos cadastrados (para pacientes agendarem)
    */
-  async atualizar(id: string, dados: Partial<Omit<Medico, 'id' | 'dataCadastro'>>): Promise<Medico> {
-    await delay();
+  async listar(token: string): Promise<Medico[]> {
+    const result = await apiRequest('/medicos', 'GET', undefined, token);
 
-    const index = medicosState.findIndex(m => m.id === id);
-    if (index === -1) {
-      throw new Error('Médico não encontrado.');
+    if (!result.ok) {
+      throw new Error(result.error || 'Erro ao listar médicos.');
     }
 
-    // Se estiver atualizando CRM + UF, verificar se já existe outro médico com os mesmos dados
-    const crmFinal = dados.crm ? dados.crm.trim() : medicosState[index].crm;
-    const ufFinal = dados.ufCrm ? dados.ufCrm.trim().toUpperCase() : medicosState[index].ufCrm;
-
-    if (dados.crm || dados.ufCrm) {
-      const crmJaExiste = medicosState.some(
-        m => m.id !== id && m.crm.trim() === crmFinal && m.ufCrm.trim().toUpperCase() === ufFinal
-      );
-      if (crmJaExiste) {
-        throw new Error(`Já existe outro médico cadastrado com o CRM ${crmFinal} nesta UF (${ufFinal}).`);
-      }
-    }
-
-    const medicoAtualizado = {
-      ...medicosState[index],
-      ...dados,
-      crm: crmFinal,
-      ufCrm: ufFinal,
-    };
-
-    medicosState[index] = medicoAtualizado;
-    return medicoAtualizado;
+    return result.data;
   },
 
   /**
-   * Remove um médico pelo ID
+   * Busca os dados do médico logado
    */
-  async remover(id: string): Promise<boolean> {
-    await delay();
+  async buscarMeuPerfil(token: string): Promise<Medico> {
+    const result = await apiRequest('/medicos/me', 'GET', undefined, token);
 
-    const index = medicosState.findIndex(m => m.id === id);
-    if (index === -1) {
-      throw new Error('Médico não encontrado.');
+    if (!result.ok) {
+      throw new Error(result.error || 'Erro ao buscar perfil.');
     }
 
-    medicosState.splice(index, 1);
-    return true;
+    return result.data;
   },
 };

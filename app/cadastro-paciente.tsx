@@ -45,6 +45,7 @@ export default function CadastroPaciente() {
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
+  const [senha, setSenha] = useState('');
 
   // Estados de erros individuais
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -101,6 +102,12 @@ export default function CadastroPaciente() {
     if (!cidade.trim()) novosErros.cidade = 'Cidade é obrigatória.';
     if (!estado.trim()) novosErros.estado = 'Estado (UF) é obrigatório.';
 
+    if (!senha) {
+      novosErros.senha = 'Senha é obrigatória.';
+    } else if (senha.length < 6) {
+      novosErros.senha = 'Senha deve ter no mínimo 6 caracteres.';
+    }
+
     setErrors(novosErros);
     return Object.keys(novosErros).length === 0;
   };
@@ -127,6 +134,7 @@ export default function CadastroPaciente() {
         bairro: bairro.trim(),
         cidade: cidade.trim(),
         estado: estado.trim().toUpperCase(),
+        senha,
       });
 
       Alert.alert('Sucesso', 'Paciente cadastrado com sucesso!', [
@@ -257,6 +265,21 @@ export default function CadastroPaciente() {
             limparErro('email');
           }}
           error={errors.email}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+
+        <FormInput
+          label="Senha *"
+          placeholder="Mínimo 6 caracteres"
+          iconName="lock-closed-outline"
+          value={senha}
+          onChangeText={(val) => {
+            setSenha(val);
+            limparErro('senha');
+          }}
+          error={errors.senha}
+          secureTextEntry={true}
           autoCapitalize="none"
           autoCorrect={false}
         />

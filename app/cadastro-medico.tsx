@@ -33,6 +33,7 @@ export default function CadastroMedico() {
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
   const [clinica, setClinica] = useState('');
+  const [senha, setSenha] = useState('');
 
   // Estados de erros individuais
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -94,6 +95,12 @@ export default function CadastroMedico() {
 
     if (!clinica.trim()) novosErros.clinica = 'Clínica de atendimento é obrigatória.';
 
+    if (!senha) {
+      novosErros.senha = 'Senha é obrigatória.';
+    } else if (senha.length < 6) {
+      novosErros.senha = 'Senha deve ter no mínimo 6 caracteres.';
+    }
+
     setErrors(novosErros);
     return Object.keys(novosErros).length === 0;
   };
@@ -114,6 +121,7 @@ export default function CadastroMedico() {
         telefone,
         email: email.trim(),
         clinica: clinica.trim(),
+        senha,
       });
 
       Alert.alert('Sucesso', 'Médico cadastrado com sucesso!', [
@@ -257,6 +265,21 @@ export default function CadastroMedico() {
           }}
           error={errors.clinica}
           autoCapitalize="words"
+        />
+
+        <FormInput
+          label="Senha *"
+          placeholder="Mínimo 6 caracteres"
+          iconName="lock-closed-outline"
+          value={senha}
+          onChangeText={(val) => {
+            setSenha(val);
+            limparErro('senha');
+          }}
+          error={errors.senha}
+          secureTextEntry={true}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
 
         {/* BOTÕES */}

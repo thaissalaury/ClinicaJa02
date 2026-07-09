@@ -1,95 +1,74 @@
 import { Paciente } from '../types/paciente';
-import { mockPacientes } from '../data/mockPacientes';
-
-// Estado local em memória durante a execução do app para permitir alterações temporárias
-let pacientesState: Paciente[] = [...mockPacientes];
-
-// Função auxiliar para simular latência de rede (ex: 300ms)
-const delay = (ms: number = 300) => new Promise(resolve => setTimeout(resolve, ms));
+import { apiRequest } from './api';
 
 export const pacientesService = {
   /**
-   * Retorna a lista de pacientes cadastrados
+   * Cadastra um novo paciente.
+   * Fluxo: 1) Registra no Supabase Auth → 2) Cria o perfil na tabela pacientes
    */
-  async listar(): Promise<Paciente[]> {
-    await delay();
-    return [...pacientesState];
-  },
+  async cadastrar(
+    paciente: Omit<Paciente, 'id' | 'dataCadastro'> & { senha: string }
+  ): Promise<Paciente> {
+    // 1. Registrar no Supabase Auth
+    const authResult = await apiRequest('/auth/register', 'POST', {
+      email: paciente.email,
+      password: paciente.senha,
+    });
 
-  /**
-   * Cadastra um novo paciente, validando unicidade de CPF
-   */
-  async cadastrar(paciente: Omit<Paciente, 'id' | 'dataCadastro'>): Promise<Paciente> {
-    await delay();
-
-    const cpfFormatado = paciente.cpf.replace(/\D/g, '');
-    const cpfJaExiste = pacientesState.some(
-      p => p.cpf.replace(/\D/g, '') === cpfFormatado
-    );
-
-    if (cpfJaExiste) {
-      throw new Error('Já existe um paciente cadastrado com este CPF.');
+    if (!authResult.ok) {
+      throw new Error(authResult.error || 'Erro ao registrar usuário.');
     }
 
-    const novoPaciente: Paciente = {
-      ...paciente,
-      id: Math.random().toString(36).substring(2, 9),
-      dataCadastro: new Date().toISOString(),
-    };
+    // 2. Fazer login para obter o token de sessão
+    const loginResult = await apiRequest('/auth/login', 'POST', {
+      email: paciente.email,
+      password: paciente.senha,
+    });
 
-    pacientesState.push(novoPaciente);
-    
-    // LOG DE HOMOLOGAÇÃO: Imprime a lista de pacientes atualizada no terminal
-    console.log('\n=== [DEBUG] PACIENTE CADASTRADO COM SUCESSO ===');
-    console.log(JSON.stringify(pacientesState, null, 2));
+    if (!loginResult.ok) {
+      throw new Error(loginResult.error || 'Erro ao autenticar usuário.');
+    }
+
+    const token = loginResult.data.session.access_token;
+
+    // 3. Criar o perfil do paciente com o token
+    const perfilResult = await apiRequest('/pacientes', 'POST', {
+      nome: paciente.nome,
+      cpf: paciente.cpf,
+      data_nascimento: paciente.dataNascimento,
+      email: paciente.email,
+      telefone: paciente.telefone,
+      sexo: paciente.sexo,
+      cep: paciente.cep,
+      endereco: paciente.endereco,
+      numero: paciente.numero,
+      complemento: paciente.complemento || null,
+      bairro: paciente.bairro,
+      cidade: paciente.cidade,
+      estado: paciente.estado,
+    }, token);
+
+    if (!perfilResult.ok) {
+      throw new Error(perfilResult.error || 'Erro ao salvar perfil do paciente.');
+    }
+
+    console.log('\n=== [DEBUG] PACIENTE CADASTRADO NO SUPABASE ===');
+    console.log(JSON.stringify(perfilResult.data, null, 2));
     console.log('================================================\n');
 
-    return novoPaciente;
+    return perfilResult.data.paciente;
   },
 
   /**
-   * Atualiza dados de um paciente existente
+   * Busca os dados do paciente logado
    */
-  async atualizar(id: string, dados: Partial<Omit<Paciente, 'id' | 'dataCadastro'>>): Promise<Paciente> {
-    await delay();
+  async buscarMeuPerfil(token: string): Promise<Paciente> {
+    const result = await apiRequest('/pacientes/me', 'GET', undefined, token);
 
-    const index = pacientesState.findIndex(p => p.id === id);
-    if (index === -1) {
-      throw new Error('Paciente não encontrado.');
+    if (!result.ok) {
+      throw new Error(result.error || 'Erro ao buscar perfil.');
     }
 
-    // Se estiver atualizando o CPF, verificar se já existe outro paciente com o mesmo CPF
-    if (dados.cpf) {
-      const cpfFormatado = dados.cpf.replace(/\D/g, '');
-      const cpfJaExiste = pacientesState.some(
-        p => p.id !== id && p.cpf.replace(/\D/g, '') === cpfFormatado
-      );
-      if (cpfJaExiste) {
-        throw new Error('Já existe outro paciente cadastrado com este CPF.');
-      }
-    }
-
-    const pacienteAtualizado = {
-      ...pacientesState[index],
-      ...dados,
-    };
-
-    pacientesState[index] = pacienteAtualizado;
-    return pacienteAtualizado;
-  },
-
-  /**
-   * Remove um paciente pelo ID
-   */
-  async remover(id: string): Promise<boolean> {
-    await delay();
-
-    const index = pacientesState.findIndex(p => p.id === id);
-    if (index === -1) {
-      throw new Error('Paciente não encontrado.');
-    }
-
-    pacientesState.splice(index, 1);
-    return true;
+    return result.data;
   },
 };
