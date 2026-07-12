@@ -1,16 +1,25 @@
 import Constants from 'expo-constants';
 
 const getBaseUrl = (): string => {
-  // Se o desenvolvedor definiu uma URL específica via env (opcional), usa ela
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+  const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (envUrl) {
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
   }
 
-  // Em desenvolvimento (Expo Go), extraímos o IP do servidor Metro automaticamente
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
     const ip = hostUri.split(':')[0];
-    return `http://${ip}:3000/api`;
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return `http://${ip}:3000/api`;
+    }
+  }
+
+  const manifest = Constants.expoConfig?.extra?.expoGo?.debuggerHost;
+  if (manifest) {
+    const ip = manifest.split(':')[0];
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return `http://${ip}:3000/api`;
+    }
   }
 
   return 'http://localhost:3000/api';
