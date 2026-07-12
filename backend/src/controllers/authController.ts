@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabase } from '../config/supabaseClient';
+import { supabase, supabaseAdmin } from '../config/supabaseClient';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -15,12 +15,23 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Registra o usuário no Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
+    const authClient = supabaseAdmin || supabase;
+
+    if (!authClient) {
+      return res.status(503).json({
+        error: 'Supabase não está configurado. Defina SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env.'
+      });
+    }
+
+    // Registra o usuário no Supabase Auth e já cria a sessão imediatamente.
+    const { data, error } = await authClient.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: process.env.SUPABASE_REDIRECT_URL || undefined,
+        data: {
+          email_confirmed: true,
+        },
       },
     });
 
@@ -31,6 +42,7 @@ export const register = async (req: Request, res: Response) => {
     return res.status(201).json({
       message: 'Usuário registrado com sucesso',
       user: data.user,
+      session: data.session,
       needsEmailConfirmation: !data.session,
     });
   } catch (error: any) {

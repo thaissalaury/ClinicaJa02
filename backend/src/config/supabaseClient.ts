@@ -5,6 +5,7 @@ dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL?.trim();
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY?.trim();
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 const hasPlaceholderValue = (value?: string) => {
   if (!value) {
@@ -23,4 +24,13 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl!, supabaseAnonKey!)
+  : null;
+
+export const supabaseAdmin = supabaseServiceRoleKey && !hasPlaceholderValue(supabaseServiceRoleKey)
+  ? createClient(supabaseUrl!, supabaseServiceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
   : null;
