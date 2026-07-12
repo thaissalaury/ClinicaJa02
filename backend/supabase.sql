@@ -1,4 +1,10 @@
 -- ==========================================
+-- 0. Extensões necessárias
+-- ==========================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ==========================================
 -- 1. Criação das Tabelas
 -- ==========================================
 
@@ -69,41 +75,52 @@ ALTER TABLE public.medicos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.consultas ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para Pacientes
--- Um paciente autenticado pode inserir seu perfil, visualizar seu perfil e atualizá-lo.
-CREATE POLICY "Pacientes podem gerenciar seus próprios dados" 
+DROP POLICY IF EXISTS "Pacientes podem gerenciar seus próprios dados" ON public.pacientes;
+CREATE POLICY "Pacientes podem gerenciar seus próprios dados"
 ON public.pacientes
 FOR ALL
-USING (auth.uid() = user_id);
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
 -- Políticas para Médicos
--- Um médico autenticado pode gerenciar seus próprios dados.
-CREATE POLICY "Médicos podem gerenciar seus próprios dados" 
+DROP POLICY IF EXISTS "Médicos podem gerenciar seus próprios dados" ON public.medicos;
+CREATE POLICY "Médicos podem gerenciar seus próprios dados"
 ON public.medicos
 FOR ALL
-USING (auth.uid() = user_id);
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
 -- Qualquer usuário autenticado (como um paciente) pode ver a lista de médicos para poder agendar consultas.
-CREATE POLICY "Usuários autenticados podem ver a lista de médicos" 
+DROP POLICY IF EXISTS "Usuários autenticados podem ver a lista de médicos" ON public.medicos;
+CREATE POLICY "Usuários autenticados podem ver a lista de médicos"
 ON public.medicos
 FOR SELECT
 USING (auth.role() = 'authenticated');
 
 -- Políticas para Consultas
--- Pacientes e Médicos podem inserir consultas.
--- Uma consulta só pode ser vista/alterada se o user_id do paciente_id for o logado OU o user_id do medico_id for o logado.
-CREATE POLICY "Acesso de Consultas restrito aos envolvidos" 
+DROP POLICY IF EXISTS "Acesso de Consultas restrito aos envolvidos" ON public.consultas;
+CREATE POLICY "Acesso de Consultas restrito aos envolvidos"
 ON public.consultas
 FOR ALL
 USING (
-  -- Verifica se o usuário atual é o paciente da consulta
   EXISTS (
-    SELECT 1 FROM public.pacientes p 
+    SELECT 1 FROM public.pacientes p
     WHERE p.id = consultas.paciente_id AND p.user_id = auth.uid()
   )
   OR
-  -- Verifica se o usuário atual é o médico da consulta
   EXISTS (
-    SELECT 1 FROM public.medicos m 
+    SELECT 1 FROM public.medicos m
+    WHERE m.id = consultas.medico_id AND m.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.pacientes p
+    WHERE p.id = consultas.paciente_id AND p.user_id = auth.uid()
+  )
+  OR
+  EXISTS (
+    SELECT 1 FROM public.medicos m
     WHERE m.id = consultas.medico_id AND m.user_id = auth.uid()
   )
 );
