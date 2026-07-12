@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  View,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   useColorScheme,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { FormInput } from '@/components/form/FormInput';
 import { FormDropdown } from '@/components/form/FormDropdown';
+import { FormInput } from '@/components/form/FormInput';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 
+import { medicosService } from '@/services/medicosService';
 import { maskPhone } from '@/utils/masks';
 import { validateEmail, validatePhone } from '@/utils/validators';
-import { medicosService } from '@/services/medicosService';
 
 export default function CadastroMedico() {
   const router = useRouter();

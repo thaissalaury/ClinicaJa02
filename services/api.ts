@@ -1,4 +1,5 @@
-import Constants from 'expo-constants';
+
+const FALLBACK_IP = '192.168.100.69';
 
 const getBaseUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
@@ -6,23 +7,7 @@ const getBaseUrl = (): string => {
     return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
   }
 
-  const hostUri = Constants.expoConfig?.hostUri;
-  if (hostUri) {
-    const ip = hostUri.split(':')[0];
-    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-      return `http://${ip}:3000/api`;
-    }
-  }
-
-  const manifest = Constants.expoConfig?.extra?.expoGo?.debuggerHost;
-  if (manifest) {
-    const ip = manifest.split(':')[0];
-    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-      return `http://${ip}:3000/api`;
-    }
-  }
-
-  return 'http://localhost:3000/api';
+  return `http://${FALLBACK_IP}:3000/api`;
 };
 
 const BASE_URL = getBaseUrl();

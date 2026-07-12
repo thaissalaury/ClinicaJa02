@@ -1,31 +1,31 @@
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  View,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   useColorScheme,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { FormInput } from '@/components/form/FormInput';
 import { FormDropdown } from '@/components/form/FormDropdown';
+import { FormInput } from '@/components/form/FormInput';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 
-import { maskCPF, maskPhone, maskCEP, maskDate } from '@/utils/masks';
-import {
-  validateCPF,
-  validateEmail,
-  validateDate,
-  validatePhone,
-  validateCEP,
-} from '@/utils/validators';
 import { pacientesService } from '@/services/pacientesService';
+import { maskCEP, maskCPF, maskDate, maskPhone } from '@/utils/masks';
+import {
+  validateCEP,
+  validateCPF,
+  validateDate,
+  validateEmail,
+  validatePhone,
+} from '@/utils/validators';
 
 export default function CadastroPaciente() {
   const router = useRouter();
@@ -63,7 +63,7 @@ export default function CadastroPaciente() {
     const novosErros: Record<string, string> = {};
 
     if (!nome.trim()) novosErros.nome = 'Nome completo é obrigatório.';
-    
+
     if (!cpf) {
       novosErros.cpf = 'CPF é obrigatório.';
     } else if (!validateCPF(cpf)) {
@@ -73,7 +73,8 @@ export default function CadastroPaciente() {
     if (!dataNascimento) {
       novosErros.dataNascimento = 'Data de nascimento é obrigatória.';
     } else if (!validateDate(dataNascimento)) {
-      novosErros.dataNascimento = 'Data inválida ou no futuro (DD/MM/AAAA).';
+      novosErros.dataNascimento =
+        'Data inválida ou no futuro (DD/MM/AAAA).';
     }
 
     if (!email) {
@@ -114,13 +115,17 @@ export default function CadastroPaciente() {
 
   const handleSalvar = async () => {
     if (!validarCampos()) {
-      Alert.alert('Erro', 'Por favor, corrija os erros no formulário antes de salvar.');
+      Alert.alert(
+        'Erro',
+        'Por favor, corrija os erros no formulário antes de salvar.'
+      );
       return;
     }
 
     setSalvando(true);
     try {
-      await pacientesService.cadastrar({
+      console.log('[CadastroPaciente] iniciando cadastro');
+      const resultado = await pacientesService.cadastrar({
         nome: nome.trim(),
         cpf,
         dataNascimento,
@@ -137,11 +142,16 @@ export default function CadastroPaciente() {
         senha,
       });
 
+      console.log('[CadastroPaciente] cadastro concluído', resultado);
       Alert.alert('Sucesso', 'Paciente cadastrado com sucesso!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
-      Alert.alert('Erro ao Salvar', error.message || 'Ocorreu um erro inesperado.');
+      console.error('[CadastroPaciente] erro no cadastro', error);
+      Alert.alert(
+        'Erro ao Salvar',
+        error?.message || 'Ocorreu um erro inesperado.'
+      );
     } finally {
       setSalvando(false);
     }
@@ -149,7 +159,7 @@ export default function CadastroPaciente() {
 
   const limparErro = (campo: string) => {
     if (errors[campo]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const copy = { ...prev };
         delete copy[campo];
         return copy;
@@ -160,9 +170,21 @@ export default function CadastroPaciente() {
   return (
     <ThemedView style={styles.container}>
       {/* HEADER */}
-      <View style={[styles.header, { borderBottomColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={isDark ? '#FFF' : '#111'} />
+      <View
+        style={[
+          styles.header,
+          { borderBottomColor: isDark ? '#1E293B' : '#E2E8F0' },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={isDark ? '#FFF' : '#111'}
+          />
         </TouchableOpacity>
         <ThemedText type="subtitle" style={styles.headerTitle}>
           Cadastrar Paciente
@@ -171,8 +193,12 @@ export default function CadastroPaciente() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* INFORMAÇÕES PESSOAIS */}
-        <Text style={[styles.sectionTitle, { color: isDark ? '#60A5FA' : '#007AFF' }]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: isDark ? '#60A5FA' : '#007AFF' },
+          ]}
+        >
           Dados Pessoais
         </Text>
 
@@ -284,8 +310,12 @@ export default function CadastroPaciente() {
           autoCorrect={false}
         />
 
-        {/* ENDEREÇO */}
-        <Text style={[styles.sectionTitle, { color: isDark ? '#60A5FA' : '#007AFF', marginTop: 12 }]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: isDark ? '#60A5FA' : '#007AFF', marginTop: 12 },
+          ]}
+        >
           Endereço Residencial
         </Text>
 
@@ -386,10 +416,12 @@ export default function CadastroPaciente() {
           </View>
         </View>
 
-        {/* BOTÕES */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: isDark ? '#60A5FA' : '#007AFF' }]}
+            style={[
+              styles.saveButton,
+              { backgroundColor: isDark ? '#60A5FA' : '#007AFF' },
+            ]}
             onPress={handleSalvar}
             disabled={salvando}
             activeOpacity={0.8}
@@ -472,3 +504,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
