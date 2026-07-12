@@ -19,15 +19,19 @@ export const register = async (req: Request, res: Response) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: process.env.SUPABASE_REDIRECT_URL || undefined,
+      },
     });
 
     if (error) {
       return res.status(400).json({ error: error.message });
     }
 
-    return res.status(201).json({ 
+    return res.status(201).json({
       message: 'Usuário registrado com sucesso',
-      user: data.user
+      user: data.user,
+      needsEmailConfirmation: !data.session,
     });
   } catch (error: any) {
     return res.status(500).json({ error: 'Erro interno no servidor', details: error.message });
@@ -55,13 +59,20 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (error) {
+      if (error.message === 'Email not confirmed') {
+        return res.status(401).json({
+          error: 'Confirme seu e-mail antes de entrar.',
+          code: 'email_not_confirmed',
+        });
+      }
+
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
     return res.status(200).json({
       message: 'Login realizado com sucesso',
       session: data.session,
-      user: data.user
+      user: data.user,
     });
   } catch (error: any) {
     return res.status(500).json({ error: 'Erro interno no servidor', details: error.message });
